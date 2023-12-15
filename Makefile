@@ -52,6 +52,7 @@ rtems_waf_configure:
 		./waf configure --prefix=$(PREFIX);
 
 rtems_waf_build:
+	cd ./rtems_source/ && \
 		export PATH=$(PREFIX)/bin:"$(PATH)" && \
 		./waf;
 
