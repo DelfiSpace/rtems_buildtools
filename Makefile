@@ -28,7 +28,7 @@ SPC_DEST_DIR := ./rtems_source/spec/build/bsps/arm/stm32l4
 # /* ------------------------------------------------------ */
 
 bsp_install: rtems_source $(BSP_DEST_DIR) $(SPC_DEST_DIR) \
-	rtems_waf_configure
+	rtems_waf_configure rtems_waf_build
 
 rtems_source:
 	git clone --depth 1 -b master https://github.com/RTEMS/rtems.git $@
@@ -52,7 +52,10 @@ rtems_waf_configure:
 		./waf configure --prefix=$(PREFIX);
 
 rtems_waf_build:
+		export PATH=$(PREFIX)/bin:"$(PATH)" && \
+		./waf;
 
-clean:
+
+clean: 
 	$(RM) -r rtems_source
 
