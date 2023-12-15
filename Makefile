@@ -17,34 +17,36 @@
 # For example
 export PREFIX=$(HOME)/RTEMS/bld/6
 #
+# /* ----Remote directories configuration ----------------- */
+
+BSP_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp.git
+BSP_DEST_DIR := ./rtems_source/bsps/arm/stm32l4
+
+SPC_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp_spec.git
+SPC_DEST_DIR := ./rtems_source/spec/build/arm/stm32l4
+
 # /* ------------------------------------------------------ */
 
-bsp_install: rtems_source rtems_stm32l4xx_bsp \
+bsp_install: rtems_source $(BSP_DEST_DIR) $(SPC_DEST_DIR) \
 	rtems_waf_configure
 
 rtems_source:
 	git clone --depth 1 -b master https://github.com/RTEMS/rtems.git $@
 
 # Clone board support package source
-# HACK: to be changed later
-rtems_stm32l4xx_bsp:
-	rm -r ./rtems_source/bsps/arm/stm32l4
-	git clone --depth 1 git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp.git \
-		./rtems_source/bsps/arm/stm32l4
+$(BSP_DEST_DIR):
+	git clone $(BSP_REPO_URL) $(BSP_DEST_DIR)
 
-rtems_stm32l4xx_spec:
+$(SPC_DEST_DIR):
+	git clone $(SPC_REPO_URL) $(SPC_DEST_DIR)
 
 # Since the device drivers are meant to be used statically with the board support package,
 # they are included as submodules 
 
-# drivers section
-#driver_multi_spi_stm32:
-#	git clone --depth 1 git@gitlab.tudelft.nl:delfispace/twinsat/firmware/drivers/multi_spi_stm32.git $@
-
 rtems_waf_configure:
 	cd ./rtems_source/ && \
 		export PATH=$(PREFIX)/bin:"$(PATH)" && \
-		rm ./config.ini && \
+		rm ./config.ini; \
 		echo "[arm/stm32l4]" > config.ini && \
 		echo "BUILD_TESTS = True" >> config.ini && \
 		./waf configure --prefix=$(PREFIX);
@@ -52,5 +54,5 @@ rtems_waf_configure:
 rtems_waf_build:
 
 clean:
-	$(RM) rtems
+	$(RM) -r rtems_source
 
