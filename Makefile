@@ -23,7 +23,7 @@ BSP_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_st
 BSP_DEST_DIR := ./rtems_source/bsps/arm/stm32l4
 
 SPC_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp_spec.git
-SPC_DEST_DIR := ./rtems_source/spec/build/arm/stm32l4
+SPC_DEST_DIR := ./rtems_source/spec/build/bsps/rm/stm32l4
 
 # /* ------------------------------------------------------ */
 
