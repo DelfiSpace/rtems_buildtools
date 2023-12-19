@@ -28,7 +28,7 @@ SPC_DEST_DIR := ./rtems_source/spec/build/bsps/arm/stm32l4
 # /* ------------------------------------------------------ */
 
 bsp_install: rtems_source $(BSP_DEST_DIR) $(SPC_DEST_DIR) \
-	rtems_waf_configure rtems_waf_build
+	rtems_waf_configure rtems_waf_build rtems_waf_install
 
 rtems_source:
 	git clone --depth 1 -b master https://github.com/RTEMS/rtems.git $@
@@ -43,18 +43,24 @@ $(SPC_DEST_DIR):
 # Since the device drivers are meant to be used statically with the board support package,
 # they are included as submodules 
 
+# for now tests are not enabled
+#echo "BUILD_TESTS = True" >> config.ini &&
 rtems_waf_configure:
 	cd ./rtems_source/ && \
 		export PATH=$(PREFIX)/bin:"$(PATH)" && \
 		rm ./config.ini; \
 		echo "[arm/stm32l4]" > config.ini && \
-		echo "BUILD_TESTS = True" >> config.ini && \
 		./waf configure --prefix=$(PREFIX);
 
 rtems_waf_build:
 	cd ./rtems_source/ && \
 		export PATH=$(PREFIX)/bin:"$(PATH)" && \
 		./waf;
+
+rtems_waf_install:
+	cd ./rtems_source/ && \
+		export PATH=$(PREFIX)/bin:"$(PATH)" && \
+		./waf install;
 
 
 clean: 
