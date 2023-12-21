@@ -21,9 +21,12 @@ export PREFIX=$(HOME)/RTEMS/bld/6
 
 BSP_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp.git
 BSP_DEST_DIR := ./rtems_source/bsps/arm/stm32l4
+BSP_COMMIT_HASH := HEAD
 
 SPC_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp_spec.git
 SPC_DEST_DIR := ./rtems_source/spec/build/bsps/arm/stm32l4
+SPC_COMMIT_HASH := HEAD
+
 
 # /* ------------------------------------------------------ */
 
@@ -35,10 +38,14 @@ rtems_source:
 
 # Clone board support package source
 $(BSP_DEST_DIR):
-	git clone $(BSP_REPO_URL) $(BSP_DEST_DIR)
+	git clone $(BSP_REPO_URL) $(BSP_DEST_DIR) && \
+		cd $(BSP_DEST_DIR) && \
+		git checkout $(BSP_COMMIT_HASH)
 
 $(SPC_DEST_DIR):
-	git clone $(SPC_REPO_URL) $(SPC_DEST_DIR)
+	git clone $(SPC_REPO_URL) $(SPC_DEST_DIR) && \
+		cd $(SPC_DEST_DIR) && \
+		git checkout $(SPC_COMMIT_HASH)
 
 # Since the device drivers are meant to be used statically with the board support package,
 # they are included as submodules 
