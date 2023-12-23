@@ -46,6 +46,7 @@ PTCH_DIR := ./patches
 BLD_DIR := ./bld
 
 source: makedir_source \
+				makedir_patches \
 				$(SRC_DIR)/rtems \
 				$(SRC_DIR)/$(BSP_NAME) \
 				$(SRC_DIR)/$(SPC_NAME) \
@@ -109,6 +110,7 @@ clean_bld:
 # fill the build directory
 $(BLD_DIR)/bsps: makedir_build clean_bld
 	cp -r $(SRC_DIR)/rtems/* $(BLD_DIR)/
+	cp -r $(SRC_DIR)/rtems/.git $(BLD_DIR)/.git
 
 $(BLD_DIR)/$(BSP_DEST_DIR): makedir_build clean_bld
 	cp -r $(SRC_DIR)/$(BSP_NAME) $(BLD_DIR)/$(BSP_DEST_DIR)
@@ -161,7 +163,7 @@ bsp_waf_install:
 # NOTE: temporary
 
 APP_DIR := ../RTEMS/app/hello/
-app_waf_compile: bsp_waf_install
+app_waf_compile: bsp_install
 		cd $(APP_DIR) && \
 	./waf clean && \
 	./waf  && \
