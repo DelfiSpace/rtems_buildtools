@@ -44,7 +44,7 @@ SRC_DIR := ./src
 PTCH_DIR := ./patches
 BLD_DIR := ./bld
 
-all: bsp_prepare
+all: app_waf_compile
 
 source: makedir_source \
 				$(SRC_DIR)/rtems \
@@ -105,11 +105,12 @@ makedir_build:
 
 clean_bld:
 	$(RM) -r $(BLD_DIR)/*
+	$(RM) -r $(BLD_DIR)/.*
 
 # fill the build directory
 $(BLD_DIR)/bsps: makedir_build clean_bld
 	cp -r $(SRC_DIR)/rtems/* $(BLD_DIR)/
-	cp -r $(SRC_DIR)/rtems/.git $(BLD_DIR)/.git
+	cp -r $(SRC_DIR)/rtems/.* $(BLD_DIR)/
 
 $(BLD_DIR)/$(BSP_DEST_DIR): makedir_build clean_bld
 	cp -r $(SRC_DIR)/$(BSP_NAME) $(BLD_DIR)/$(BSP_DEST_DIR)
@@ -120,7 +121,7 @@ $(BLD_DIR)/$(SPC_DEST_DIR): makedir_build clean_bld
 # apply patches
 apply_patches:
 	cd $(BLD_DIR) && \
-	git apply ../$(PTCH_DIR)/patches/volatile_workspace_values.patch
+	git apply ../$(PTCH_DIR)/volatile_workspace_values.patch
 
 
 # /* ------------------------------------------------------ */
