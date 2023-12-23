@@ -11,74 +11,168 @@
 # - Board support package for stm32l4xx
 # - Drivers included in the stm32l4xx bsp as submodules
 
+# /* ------------------------------------------------------ */
+# /*  CONFIGURATION                                         */
+# /* ------------------------------------------------------ */
+#
 # /* ----To be filled by user ----------------------------- */
 # Update PREFIX to include the path of the RTEMS installation on your system
 # The selelected installation shall contain the rtems generated gcc toolchain
 # For example
 export PREFIX=$(HOME)/RTEMS/bld/6
-#
+
+
 # /* ----Remote directories configuration ----------------- */
 
+BSP_NAME := stm32l4_bsp
 BSP_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp.git
-BSP_DEST_DIR := ./rtems_source/bsps/arm/stm32l4
+BSP_DEST_DIR := ./bsps/arm/stm32l4
 BSP_COMMIT_HASH := HEAD
 
 
+SPC_NAME := stm32l4_bsp_specs
 SPC_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp_spec.git
-SPC_DEST_DIR := ./rtems_source/spec/build/bsps/arm/stm32l4
+SPC_DEST_DIR := ./spec/build/bsps/arm/stm32l4
 SPC_COMMIT_HASH := HEAD
+
+PTCH_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_patches.git
+PTCH_COMMIT_HASH := HEAD
+
+# /* ------------------------------------------------------ */
+# /*  GENRAL API                                            */
+# /* ------------------------------------------------------ */
+SRC_DIR := ./src
+PTCH_DIR := ./patches
+BLD_DIR := ./bld
+
+source: makedir_source \
+				$(SRC_DIR)/rtems \
+				$(SRC_DIR)/$(BSP_NAME) \
+				$(SRC_DIR)/$(SPC_NAME) \
+				makedir_patches \
+				$(PTCH_DIR) 
+
+bsp_prepare:source \
+					makedir_build \
+					$(BLD_DIR)/bsps \
+					$(BLD_DIR)/$(BSP_DEST_DIR) \
+					$(BLD_DIR)/$(SPC_DEST_DIR) \
+					clean_daughter_source
+
+.PHONY: bsp_install
+bsp_install: bsp_prepare \
+						bsp_waf_configure \
+						bsp_waf_build \
+						bsp_waf_install
 
 
 # /* ------------------------------------------------------ */
+# /*  OBTAIN SOURCES                                        */
+# /* ------------------------------------------------------ */
 
-bsp_install: rtems_source $(BSP_DEST_DIR) $(SPC_DEST_DIR) \
-	rtems_waf_install
+makedir_source:
+	mkdir -p $(SRC_DIR)
 
-source: rtems_source $(BSP_DEST_DIR) $(SPC_DEST_DIR)
+makedir_patches:
+	mkdir -p $(PTCH_DIR)
 
-rtems_source:
-	git clone --depth 1 -b master https://github.com/RTEMS/rtems.git $@
+#get rtems source
+$(SRC_DIR)/rtems: 
+	git clone --depth 1 -b master https://github.com/RTEMS/rtems.git $(SRC_DIR)/rtems
 
-rtems_remove_git: rtems_source
-	sudo rm -R ./rtems_source/.git
-
-# HACK: can be done in a better way
-rtems_patch: 
-	cd ./rtems_source/cpukit/libdebugger && \
-	patch <  ../../../patches/patch_libdebugger_Fix_for_ARMv7-M_with_-O0_optimization.patch
-
-# Clone board support package source
-$(BSP_DEST_DIR): rtems_source
-	git clone $(BSP_REPO_URL) $(BSP_DEST_DIR) && \
-		cd $(BSP_DEST_DIR) && \
+# Clone BSP source and build specifications
+$(SRC_DIR)/$(BSP_NAME):
+	git clone $(BSP_REPO_URL) $(SRC_DIR)/$(BSP_NAME) && \
+		cd $(SRC_DIR)/$(BSP_NAME) && \
 		git checkout $(BSP_COMMIT_HASH)
 
-$(SPC_DEST_DIR): rtems_source
-	git clone $(SPC_REPO_URL) $(SPC_DEST_DIR) && \
-		cd $(SPC_DEST_DIR) && \
+$(SRC_DIR)/$(SPC_NAME): 
+	git clone $(SPC_REPO_URL) $(SRC_DIR)/$(SPC_NAME) && \
+		cd $(SRC_DIR)/$(SPC_NAME) && \
 		git checkout $(SPC_COMMIT_HASH)
+
+# Clone patches
+$(PTCH_DIR): 
+	git clone $(PTCH_REPO_URL) $(PTCH_DIR) && \
+		cd $(PTCH_DIR) && \
+		git checkout $(PTCH_COMMIT_HASH)
+
+# /* ------------------------------------------------------ */
+# /*  FILL BUILD DIR                                        */
+# /* ------------------------------------------------------ */
+makedir_build:
+	mkdir -p $(BLD_DIR)
+
+clean_bld:
+	$(RM) -r $(BLD_DIR)/*
+
+# fill the build directory
+$(BLD_DIR)/bsps: makedir_build clean_bld
+	cp -r $(SRC_DIR)/rtems/* $(BLD_DIR)/
+
+$(BLD_DIR)/$(BSP_DEST_DIR): makedir_build clean_bld
+	cp -r $(SRC_DIR)/$(BSP_NAME) $(BLD_DIR)/$(BSP_DEST_DIR)
+
+$(BLD_DIR)/$(SPC_DEST_DIR): makedir_build clean_bld
+	cp -r $(SRC_DIR)/$(SPC_NAME) $(BLD_DIR)/$(SPC_DEST_DIR)
+
+# apply patches
+
+# remove bsp and patches to force clone at the next instance
+clean_daughter_source:
+	$(RM) -R $(SRC_DIR)/$(BSP_NAME) && \
+	$(RM) -R $(SRC_DIR)/$(SPC_NAME) && \
+	$(RM) -R $(PTCH_DIR)
+
+# /* ------------------------------------------------------ */
+# /*  RTEMS BSP BUILD                                       */
+# /* ------------------------------------------------------ */
+# TODO: remove
+#rtems_remove_git: rtems_source
+#sudo rm -R ./rtems_source/.git
+
+# HACK: can be done in a better way
+#rtems_patch: 
+	#cd ./rtems_source/cpukit/libdebugger && \
+	#patch <  ../../../patches/patch_libdebugger_Fix_for_ARMv7-M_with_-O0_optimization.patch
 
 # for now tests are not enabled
 #echo "BUILD_TESTS = True" >> config.ini &&
-rtems_waf_configure:
-	cd ./rtems_source/ && \
+bsp_waf_configure:
+	cd $(BLD_DIR) && \
 		export PATH=$(PREFIX)/bin:"$(PATH)" && \
 		rm ./config.ini; \
 		echo "[arm/stm32l4]" > config.ini && \
 		./waf configure --prefix=$(PREFIX);
 
-
-rtems_waf_build: rtems_waf_configure
-	cd ./rtems_source/ && \
+bsp_waf_build:
+	cd $(BLD_DIR) && \
 		export PATH=$(PREFIX)/bin:"$(PATH)" && \
 		bear -- ./waf;
 
-rtems_waf_install:rtems_waf_build
-	cd ./rtems_source/ && \
+bsp_waf_install:
+	cd $(BLD_DIR) && \
 		export PATH=$(PREFIX)/bin:"$(PATH)" && \
 		./waf install;
 
+# /* ------------------------------------------------------ */
+# /*  APPLICATION BUILD                                     */
+# /* ------------------------------------------------------ */
+# NOTE: temporary
 
+APP_DIR := ../RTEMS/app/hello/
+app_waf_compile: bsp_waf_install
+		cd $(APP_DIR) && \
+	./waf clean && \
+	./waf  && \
+  ./waf configure --rtems=$(PREFIX) --rtems-bs=arm/stm32l4 && \
+  ./waf
+
+# /* ------------------------------------------------------ */
+# /*  CLEANUP                                               */
+# /* ------------------------------------------------------ */
 clean: 
-	$(RM) -r rtems_source
+	$(RM) -r $(SRC_DIR) \
+	$(RM) -r $(PTCH_DIR) \
+	$(RM) -r $(BLD_DIR) 
 
