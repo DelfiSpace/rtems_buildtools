@@ -23,7 +23,6 @@ export PREFIX=$(HOME)/RTEMS/bld/6
 
 
 # /* ----Remote directories configuration ----------------- */
-
 BSP_NAME := stm32l4_bsp
 BSP_REPO_URL := git@gitlab.tudelft.nl:delfispace/twinsat/firmware/rtems/rtems_stm32l4xx_bsp.git
 BSP_DEST_DIR := ./bsps/arm/stm32l4
@@ -44,6 +43,8 @@ PTCH_COMMIT_HASH := HEAD
 SRC_DIR := ./src
 PTCH_DIR := ./patches
 BLD_DIR := ./bld
+
+all: bsp_prepare
 
 source: makedir_source \
 				$(SRC_DIR)/rtems \
