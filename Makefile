@@ -46,11 +46,9 @@ PTCH_DIR := ./patches
 BLD_DIR := ./bld
 
 source: makedir_source \
-				makedir_patches \
 				$(SRC_DIR)/rtems \
 				$(SRC_DIR)/$(BSP_NAME) \
 				$(SRC_DIR)/$(SPC_NAME) \
-				makedir_patches \
 				$(PTCH_DIR) 
 
 bsp_prepare:source \
@@ -58,7 +56,7 @@ bsp_prepare:source \
 					$(BLD_DIR)/bsps \
 					$(BLD_DIR)/$(BSP_DEST_DIR) \
 					$(BLD_DIR)/$(SPC_DEST_DIR) \
-					clean_daughter_source
+					apply_patches
 
 .PHONY: bsp_install
 bsp_install: bsp_prepare \
@@ -74,27 +72,27 @@ bsp_install: bsp_prepare \
 makedir_source:
 	mkdir -p $(SRC_DIR)
 
-makedir_patches:
-	mkdir -p $(PTCH_DIR)
-
 #get rtems source
 $(SRC_DIR)/rtems: 
 	git clone --depth 1 -b master https://github.com/RTEMS/rtems.git $(SRC_DIR)/rtems
 
 # Clone BSP source and build specifications
 $(SRC_DIR)/$(BSP_NAME):
-	git clone $(BSP_REPO_URL) $(SRC_DIR)/$(BSP_NAME) && \
+		$(RM) -R $(SRC_DIR)/$(BSP_NAME) && \
+		git clone $(BSP_REPO_URL) $(SRC_DIR)/$(BSP_NAME) && \
 		cd $(SRC_DIR)/$(BSP_NAME) && \
 		git checkout $(BSP_COMMIT_HASH)
 
 $(SRC_DIR)/$(SPC_NAME): 
-	git clone $(SPC_REPO_URL) $(SRC_DIR)/$(SPC_NAME) && \
+		$(RM) -R $(SRC_DIR)/$(SPC_NAME) && \
+		git clone $(SPC_REPO_URL) $(SRC_DIR)/$(SPC_NAME) && \
 		cd $(SRC_DIR)/$(SPC_NAME) && \
 		git checkout $(SPC_COMMIT_HASH)
 
 # Clone patches
 $(PTCH_DIR): 
-	git clone $(PTCH_REPO_URL) $(PTCH_DIR) && \
+		$(RM) -R $(PTCH_DIR) && \
+		git clone $(PTCH_REPO_URL) $(PTCH_DIR) && \
 		cd $(PTCH_DIR) && \
 		git checkout $(PTCH_COMMIT_HASH)
 
@@ -119,24 +117,14 @@ $(BLD_DIR)/$(SPC_DEST_DIR): makedir_build clean_bld
 	cp -r $(SRC_DIR)/$(SPC_NAME) $(BLD_DIR)/$(SPC_DEST_DIR)
 
 # apply patches
+apply_patches:
+	cd $(BLD_DIR) && \
+	git apply ../$(PTCH_DIR)/patches/volatile_workspace_values.patch
 
-# remove bsp and patches to force clone at the next instance
-clean_daughter_source:
-	$(RM) -R $(SRC_DIR)/$(BSP_NAME) && \
-	$(RM) -R $(SRC_DIR)/$(SPC_NAME) && \
-	$(RM) -R $(PTCH_DIR)
 
 # /* ------------------------------------------------------ */
 # /*  RTEMS BSP BUILD                                       */
 # /* ------------------------------------------------------ */
-# TODO: remove
-#rtems_remove_git: rtems_source
-#sudo rm -R ./rtems_source/.git
-
-# HACK: can be done in a better way
-#rtems_patch: 
-	#cd ./rtems_source/cpukit/libdebugger && \
-	#patch <  ../../../patches/patch_libdebugger_Fix_for_ARMv7-M_with_-O0_optimization.patch
 
 # for now tests are not enabled
 #echo "BUILD_TESTS = True" >> config.ini &&
@@ -173,8 +161,4 @@ app_waf_compile: bsp_install
 # /* ------------------------------------------------------ */
 # /*  CLEANUP                                               */
 # /* ------------------------------------------------------ */
-clean: 
-	$(RM) -r $(SRC_DIR) \
-	$(RM) -r $(PTCH_DIR) \
-	$(RM) -r $(BLD_DIR) 
 
