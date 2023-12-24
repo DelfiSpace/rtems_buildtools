@@ -43,7 +43,11 @@ PTCH_COMMIT_HASH := HEAD
 SRC_DIR := ./src
 PTCH_DIR := ./patches
 BLD_DIR := ./bld
-PATCHES = $(wildcard $(PTCH_DIR)/*.patch)
+#PATCHES = $(wildcard $(PTCH_DIR)/*.patch)
+# Get all patch files in the patch directory
+ALL_PATCHES := $(wildcard $(PATCH_DIR)/*.patch)
+# Exclude patches that start with an underscore
+PATCHES := $(filter-out $(PATCH_DIR)/_%.patch, $(ALL_PATCHES))
 
 all: app_waf_compile
 
