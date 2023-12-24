@@ -49,6 +49,11 @@ ALL_PATCHES := $(wildcard $(PATCH_DIR)/*.patch)
 # Exclude patches that start with an underscore
 PATCHES := $(filter-out $(PATCH_DIR)/_%.patch, $(ALL_PATCHES))
 
+.PHONY: $(SRC_DIR)/$(BSP_NAME) \
+				$(SRC_DIR)/$(SPC_NAME) \
+				$(PTCH_DIR) \
+				bsp_install 
+
 all: app_waf_compile
 
 source: makedir_source \
@@ -64,7 +69,7 @@ bsp_prepare:source \
 					$(BLD_DIR)/$(SPC_DEST_DIR) \
 					apply_patches
 
-.PHONY: bsp_install
+
 bsp_install: bsp_prepare \
 						bsp_waf_configure \
 						bsp_waf_build \
@@ -84,20 +89,20 @@ $(SRC_DIR)/rtems:
 
 # Clone BSP source and build specifications
 $(SRC_DIR)/$(BSP_NAME):
-		$(RM) -R $(SRC_DIR)/$(BSP_NAME) && \
+		$(RM) -r $(SRC_DIR)/$(BSP_NAME) && \
 		git clone $(BSP_REPO_URL) $(SRC_DIR)/$(BSP_NAME) && \
 		cd $(SRC_DIR)/$(BSP_NAME) && \
 		git checkout $(BSP_COMMIT_HASH)
 
 $(SRC_DIR)/$(SPC_NAME): 
-		$(RM) -R $(SRC_DIR)/$(SPC_NAME) && \
+		$(RM) -r $(SRC_DIR)/$(SPC_NAME) && \
 		git clone $(SPC_REPO_URL) $(SRC_DIR)/$(SPC_NAME) && \
 		cd $(SRC_DIR)/$(SPC_NAME) && \
 		git checkout $(SPC_COMMIT_HASH)
 
 # Clone patches
 $(PTCH_DIR): 
-		$(RM) -R $(PTCH_DIR) && \
+		$(RM) -r $(PTCH_DIR) && \
 		git clone $(PTCH_REPO_URL) $(PTCH_DIR) && \
 		cd $(PTCH_DIR) && \
 		git checkout $(PTCH_COMMIT_HASH)
