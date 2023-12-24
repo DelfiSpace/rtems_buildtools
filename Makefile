@@ -43,6 +43,7 @@ PTCH_COMMIT_HASH := HEAD
 SRC_DIR := ./src
 PTCH_DIR := ./patches
 BLD_DIR := ./bld
+PATCHES = $(wildcard $(PTCH_DIR)/*.patch)
 
 all: app_waf_compile
 
@@ -121,8 +122,9 @@ $(BLD_DIR)/$(SPC_DEST_DIR): makedir_build clean_bld
 # apply patches
 apply_patches:
 	cd $(BLD_DIR) && \
-	git apply ../$(PTCH_DIR)/volatile_workspace_values.patch
-
+	for patch in $(PATCHES); do \
+		git apply ../$$patch; \
+	done
 
 # /* ------------------------------------------------------ */
 # /*  RTEMS BSP BUILD                                       */
