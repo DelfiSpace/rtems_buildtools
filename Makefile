@@ -20,6 +20,7 @@
 # The selelected installation shall contain the rtems generated gcc toolchain
 # For example
 export PREFIX=$(HOME)/RTEMS/bld/6
+APP_DIR := ../RTEMS/app/rtems_camera_firmware/
 
 
 # /* ----Remote directories configuration ----------------- */
@@ -43,11 +44,10 @@ PTCH_COMMIT_HASH := HEAD
 SRC_DIR := ./src
 PTCH_DIR := ./patches
 BLD_DIR := ./bld
-#PATCHES = $(wildcard $(PTCH_DIR)/*.patch)
+
 # Get all patch files in the patch directory
-ALL_PATCHES := $(wildcard $(PATCH_DIR)/*.patch)
-# Exclude patches that start with an underscore
-PATCHES := $(filter-out $(PATCH_DIR)/_%.patch, $(ALL_PATCHES))
+PATCHES := $(shell find $(PTCH_DIR) -type f -name '*.patch' ! -name '_*.patch')
+$(warning Value of PATCHES is $(PATCHES))
 
 .PHONY: $(SRC_DIR)/$(BSP_NAME) \
 				$(SRC_DIR)/$(SPC_NAME) \
@@ -101,11 +101,11 @@ $(SRC_DIR)/$(SPC_NAME):
 		git checkout $(SPC_COMMIT_HASH)
 
 # Clone patches
-$(PTCH_DIR): 
-		$(RM) -r $(PTCH_DIR) && \
-		git clone $(PTCH_REPO_URL) $(PTCH_DIR) && \
-		cd $(PTCH_DIR) && \
-		git checkout $(PTCH_COMMIT_HASH)
+#$(PTCH_DIR): 
+		#$(RM) -r $(PTCH_DIR) && \
+		#git clone $(PTCH_REPO_URL) $(PTCH_DIR) && \
+		#cd $(PTCH_DIR) && \
+		#git checkout $(PTCH_COMMIT_HASH)
 
 # /* ------------------------------------------------------ */
 # /*  FILL BUILD DIR                                        */
@@ -163,7 +163,6 @@ bsp_waf_install:
 # /* ------------------------------------------------------ */
 # NOTE: temporary
 
-APP_DIR := ../RTEMS/app/hello/
 app_waf_compile: bsp_install
 		cd $(APP_DIR) && \
 	./waf clean && \
