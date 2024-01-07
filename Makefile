@@ -55,6 +55,7 @@ $(warning Value of PATCHES is $(PATCHES))
 				bsp_install 
 
 all: app_waf_compile
+clean: makedir_source makedir_build bsp_install
 
 source: makedir_source \
 				$(SRC_DIR)/rtems \
@@ -139,6 +140,8 @@ apply_patches:
 # /*  RTEMS BSP BUILD                                       */
 # /* ------------------------------------------------------ */
 
+bsp_just_build: bsp_waf_configure bsp_waf_build bsp_waf_install
+
 # for now tests are not enabled
 #echo "BUILD_TESTS = True" >> config.ini &&
 bsp_waf_configure:
@@ -161,9 +164,8 @@ bsp_waf_install:
 # /* ------------------------------------------------------ */
 # /*  APPLICATION BUILD                                     */
 # /* ------------------------------------------------------ */
-# NOTE: temporary
 
-app_waf_compile: bsp_install
+app_waf_compile: bsp_just_build
 		cd $(APP_DIR) && \
 	./waf clean && \
 	./waf  && \
