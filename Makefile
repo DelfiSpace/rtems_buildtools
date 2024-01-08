@@ -54,8 +54,12 @@ $(warning Value of PATCHES is $(PATCHES))
 				$(PTCH_DIR) \
 				bsp_install 
 
-all: app_waf_compile
-clean: makedir_source makedir_build bsp_install
+all: bsp_waf_configure \
+				bsp_waf_build \
+				bsp_waf_install\
+				app_waf_compile
+
+clean: makedir_source makedir_build bsp_install app_waf_compile
 
 source: makedir_source \
 				$(SRC_DIR)/rtems \
